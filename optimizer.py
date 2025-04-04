@@ -4,13 +4,14 @@ from gurobipy import GRB
 from TSPProblem import TSPProblem
 
 class Optimizer:
-    def __init__(self, tsp_problem):
+    def __init__(self, tsp_problem, timeLimit = 120):
         self.tsp_problem = tsp_problem
         self.n = tsp_problem.dimension
         self.distances = tsp_problem.distances
         self.x = {}
         self.u = {}
         self.model = None
+        self.timeLimit = timeLimit
 
     # 使用Gurobi求解TSP问题
     def solve_with_gurobi(self):
@@ -50,8 +51,8 @@ class Optimizer:
             # 设置目标函数
             model.setObjective(gp.quicksum(distances[i, j] * x[i, j] for i in range(n) for j in range(n) if i != j), GRB.MINIMIZE)
             
-            # 设置求解时间限制（30分钟）
-            model.setParam('TimeLimit', 600)
+            model.setParam('TimeLimit', self.timeLimit)
+            model.setParam("MIPFocus", 1)  # 强调寻找可行解
             
             # 求解模型
             model.optimize()
@@ -62,16 +63,6 @@ class Optimizer:
                 gap = model.MIPGap
                 status = "Optimal" if model.status == GRB.OPTIMAL else "Time Limit"
                 runTime = model.Runtime
-
-                # 构建路径
-                tour = [0]  # 从节点0开始
-                current = 0
-                while len(tour) < n:
-                    for j in range(n):
-                        if j != current and (current, j) in x and x[current, j].x > 0.5:
-                            tour.append(j)
-                            current = j
-                            break
                 
                 return {
                     "solver": "Gurobi",
@@ -79,8 +70,7 @@ class Optimizer:
                     "lb": lb,
                     "objective": obj_value,
                     "gap": gap,
-                    "time": runTime,
-                    "tour": tour
+                    "time": runTime
                 }
             else:
                 return {
