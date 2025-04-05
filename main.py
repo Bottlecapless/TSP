@@ -1,10 +1,4 @@
 import os
-import time
-import math
-import numpy as np
-import gurobipy as gp
-# import coptpy as cp
-from gurobipy import GRB
 
 from optimizer import Optimizer
 from TSPProblem import TSPProblem
