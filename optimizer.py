@@ -8,6 +8,16 @@ from collections import defaultdict
 from TSPProblem import TSPProblem
 
 class TSPCallback:
+    """
+    Lazy constraint-based formulation solves the TSP as a compact 
+    degree-constrained integer program and incrementally adds 
+    subtour elimination constraints only when necessary. This 
+    leads to a much smaller initial model and allows the solver 
+    to focus on promising regions of the solution space early on. 
+    Mathematically, this approach follows the branch-and-cut 
+    paradigm, which is both computationally efficient and 
+    robust against model scaling.
+    """
     def __init__(self, nodes, x):
         self.nodes = nodes
         self.x = x
@@ -75,6 +85,26 @@ class Optimizer:
         self.model = None
         self.timeLimit = timeLimit
 
+    def _generate_nearest_neighbor_tour(self):
+        """使用最近邻算法生成一条初始可行路径（返回边列表）"""
+        n = self.n
+        coords = self.tsp_problem.coordinates
+        unvisited = set(range(n))
+        tour = []
+        current = 0
+        unvisited.remove(current)
+
+        while unvisited:
+            nearest = min(unvisited, key=lambda j: self.distances[current][j])
+            tour.append((min(current, nearest), max(current, nearest)))
+            current = nearest
+            unvisited.remove(current)
+
+        # 回到起点
+        tour.append((min(current, 0), max(current, 0)))
+        return tour
+
+
     def solve_with_lazy_gurobi(self):
         try:
             model = gp.Model("TSP_Lazy")
@@ -87,6 +117,11 @@ class Optimizer:
             dist_dict = self.tsp_problem.get_distance_dict()
             edges = list(dist_dict.keys())
             x = model.addVars(edges, obj=dist_dict, vtype=GRB.BINARY, name="x")
+
+            # 设置初始解（最近邻法）
+            init_tour = self._generate_nearest_neighbor_tour()
+            for i, j in init_tour:
+                x[i, j].start = 1
 
             # 添加约束：每个点度数为2
             for i in nodes:

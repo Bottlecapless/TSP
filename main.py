@@ -4,6 +4,7 @@ import json;
 
 from optimizer import Optimizer
 from TSPProblem import TSPProblem
+from plot import plot_tour
 
 # 主函数
 def main():
@@ -29,6 +30,8 @@ def main():
         print("\nSolving with Gurobi...")
         gurobi_result = optimizer.solve_with_lazy_gurobi()
         print(gurobi_result)
+        if gurobi_result["status"] != "Failed":
+            plot_tour(optimizer.tsp_problem.coordinates, gurobi_result["edges"])
         return
         
         print("\nSolving with COPT...")
