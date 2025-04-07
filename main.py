@@ -2,7 +2,8 @@ import os
 import json; 
 
 
-from optimizer import Optimizer
+from GRB_Optimizer import GRB_Optimizer
+from COPT_Optimizer import COPT_Optimizer
 from TSPProblem import TSPProblem
 from plot import plot_tour
 
@@ -24,20 +25,19 @@ def main():
         # 读取TSP问题
         tsp_problem = TSPProblem(tsp_file)
         print(f"Problem Size: {tsp_problem.dimension} cities")
-        optimizer = Optimizer(tsp_problem, timeLimit=20)
+        grboptimizer = GRB_Optimizer(tsp_problem, timeLimit=20)
+        coptoptimizer = COPT_Optimizer(tsp_problem, timeLimit=20)
 
-        print(tsp_problem.coordinates)
-
-        # 使用Gurobi求解
-        print("\nSolving with Gurobi...")
-        gurobi_result = optimizer.solve_with_lazy_gurobi()
-        print(gurobi_result)
-        if gurobi_result["status"] != "Failed":
-            plot_tour(tsp_problem.coordinates, gurobi_result["edges"])
-        return
+        # # 使用Gurobi求解
+        # print("\nSolving with Gurobi...")
+        # gurobi_result = optimizer.solve_with_lazy_gurobi()
+        # print(gurobi_result)
+        # if gurobi_result["status"] != "Failed":
+        #     plot_tour(tsp_problem.coordinates, gurobi_result["edges"])
         
+        # 使用COPT求解
         print("\nSolving with COPT...")
-        COPT_result = optimizer.solve_with_copt()
+        COPT_result = coptoptimizer.solve_with_lazy_copt()
         print(COPT_result)
         
         # 保存结果

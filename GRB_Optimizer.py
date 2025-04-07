@@ -77,7 +77,7 @@ class TSPCallback:
 
 
 
-class Optimizer:
+class GRB_Optimizer:
     def __init__(self, tsp_problem:TSPProblem, timeLimit=120):
         self.tsp_problem = tsp_problem
         self.n = tsp_problem.dimension
