@@ -18,21 +18,32 @@ class TSPCallback:
                 values = model.cbGetSolution(self.x)
                 edges = [(i, j) for (i, j), v in values.items() if v > 0.5]
                 tour = self._shortest_subtour(edges)
+
+                # ✅ 只有找到合法子环，才添加 lazy constraint
                 if len(tour) < len(self.nodes):
                     model.cbLazy(
-                        gp.quicksum(self.x[i, j] for i, j in combinations(tour, 2))
+                        gp.quicksum(self.x[min(i, j), max(i, j)] for i, j in combinations(tour, 2))
                         <= len(tour) - 1
                     )
+
+            except ValueError as ve:
+                # ⚠️ 跳过非法结构，不终止求解
+                print("Skipping invalid solution in callback:", ve)
+
             except Exception as e:
-                print("Callback failed:", e)
+                # ❗其他异常终止模型，便于调试
+                print("Callback failed with unexpected error:", e)
                 model.terminate()
 
     def _shortest_subtour(self, edges):
-        # 寻找当前最短的环（非全图）
         neighbors = defaultdict(list)
         for i, j in edges:
             neighbors[i].append(j)
             neighbors[j].append(i)  # 对称图
+
+        # 容错：跳过非法结构
+        if not all(len(neighbors[i]) == 2 for i in neighbors):
+            raise ValueError("Invalid tour structure in callback!")
 
         visited = set()
         shortest = None
@@ -53,6 +64,7 @@ class TSPCallback:
             if shortest is None or len(this_tour) < len(shortest):
                 shortest = this_tour
         return shortest
+
 
 
 class Optimizer:
