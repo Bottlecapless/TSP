@@ -1,6 +1,8 @@
 import gurobipy as gp
-import coptpy as cp
 from gurobipy import GRB
+
+import coptpy as cp
+from coptpy import COPT
 
 from TSPProblem import TSPProblem
 
@@ -87,8 +89,8 @@ class Optimizer:
         
     def solve_with_copt(self):
         try:
-            env = cp.Envr()  # 创建环境
-            model = env.createModel(name="TSP_COPT")  # 创建模型
+            env = cp.Envr()
+            model = env.createModel(name="TSP_COPT")  # 正确方式创建模型
             self.model = model
 
             n = self.n
@@ -99,52 +101,45 @@ class Optimizer:
             for i in range(n):
                 for j in range(n):
                     if i != j:
-                        x[i, j] = model.addVar(vtype=cp.COPT_BINARY, name=f"x_{i}_{j}")
+                        x[i, j] = model.addVar(vtype=COPT.BINARY, name=f"x_{i}_{j}")
             self.x = x
 
             # 每个城市只能进入一次
             for j in range(n):
-                model.addConstr(
-                    cp.quicksum(x[i, j] for i in range(n) if i != j) == 1
-                )
+                model.addConstr(cp.quicksum(x[i, j] for i in range(n) if i != j) == 1)
 
             # 每个城市只能离开一次
             for i in range(n):
-                model.addConstr(
-                    cp.quicksum(x[i, j] for j in range(n) if i != j) == 1
-                )
+                model.addConstr(cp.quicksum(x[i, j] for j in range(n) if i != j) == 1)
 
             # 使用MTZ消除子回路，添加辅助变量 u[i]
             u = {}
             for i in range(1, n):
-                u[i] = model.addVar(lb=0, ub=n-1, vtype=cp.COPT_INTEGER, name=f"u_{i}")
+                u[i] = model.addVar(lb=0, ub=n - 1, vtype=COPT.INTEGER, name=f"u_{i}")
             self.u = u
 
             for i in range(1, n):
                 for j in range(1, n):
                     if i != j:
-                        model.addConstr(u[i] - u[j] + (n * x[i, j]) <= n - 1)
+                        model.addConstr(u[i] - u[j] + n * x[i, j] <= n - 1)
 
-            # 设置目标函数：总旅行距离最小
+            # 设置目标函数：最小化总旅行距离
             model.setObjective(
                 cp.quicksum(distances[i, j] * x[i, j] for i in range(n) for j in range(n) if i != j),
-                sense=cp.COPT_MINIMIZE
+                sense=cp.COPT.MINIMIZE
             )
 
-            # 设置参数：求解时间限制
-            model.setParam(cp.COPT.Param.TimeLimit, self.timeLimit)
-            model.setParam(cp.COPT.Param.MIPFocus, 1)  # 更快找到可行解
+            # 设置参数（注意是字符串）
+            model.setParam("TimeLimit", self.timeLimit)
 
-            # 求解模型
             model.solve()
 
-            # 处理求解结果
-            status = model.status
+            status = model.getAttr("Status")
             if status in [cp.COPT.OPTIMAL, cp.COPT.TIMEOUT]:
-                lb = model.bestbnd
-                obj_value = model.objval
-                mip_gap = model.mipgap
-                runtime = model.runtime
+                lb = model.getAttr("BestBd")
+                obj_value = model.getAttr("ObjVal")
+                mip_gap = model.getAttr("MIPGap")
+                runtime = model.getAttr("Runtime")
                 status_str = "Optimal" if status == cp.COPT.OPTIMAL else "Time Limit"
 
                 return {
