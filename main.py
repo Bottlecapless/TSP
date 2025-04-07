@@ -23,12 +23,13 @@ def main():
         # 读取TSP问题
         tsp_problem = TSPProblem(tsp_file)
         print(f"Problem Size: {tsp_problem.dimension} cities")
-        optimizer = Optimizer(tsp_problem)
+        optimizer = Optimizer(tsp_problem, timeLimit=600)
 
         # 使用Gurobi求解
         print("\nSolving with Gurobi...")
-        gurobi_result = optimizer.solve_with_gurobi()
+        gurobi_result = optimizer.solve_with_lazy_gurobi()
         print(gurobi_result)
+        return
         
         print("\nSolving with COPT...")
         COPT_result = optimizer.solve_with_copt()

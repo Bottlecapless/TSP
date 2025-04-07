@@ -53,3 +53,10 @@ class TSPProblem:
                     self.distances[i-1, j-1] = round(math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2))
                 else:
                     self.distances[i-1, j-1] = 0
+    def get_distance_dict(self):
+        dist_dict = {}
+        n = self.dimension
+        for i in range(n):
+            for j in range(i + 1, n):
+                dist_dict[(i, j)] = self.distances[i, j]
+        return dist_dict
