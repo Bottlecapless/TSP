@@ -133,7 +133,7 @@ class Optimizer:
             model.setParam("ImproveStartTime", 5)
             model.setParam("ImproveStartNodes", 100)
             model.setParam("Cuts", 1)
-            model.setParam("Heuristics", 0.5)
+            model.setParam("Heuristics", 0.8)
             model.setParam("Presolve", 1)
             model.setParam("Threads", 8)
 

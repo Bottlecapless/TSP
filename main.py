@@ -24,14 +24,16 @@ def main():
         # 读取TSP问题
         tsp_problem = TSPProblem(tsp_file)
         print(f"Problem Size: {tsp_problem.dimension} cities")
-        optimizer = Optimizer(tsp_problem, timeLimit=600)
+        optimizer = Optimizer(tsp_problem, timeLimit=20)
+
+        print(tsp_problem.coordinates)
 
         # 使用Gurobi求解
         print("\nSolving with Gurobi...")
         gurobi_result = optimizer.solve_with_lazy_gurobi()
         print(gurobi_result)
         if gurobi_result["status"] != "Failed":
-            plot_tour(optimizer.tsp_problem.coordinates, gurobi_result["edges"])
+            plot_tour(tsp_problem.coordinates, gurobi_result["edges"])
         return
         
         print("\nSolving with COPT...")
