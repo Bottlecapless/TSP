@@ -148,90 +148,15 @@ class GRB_Optimizer:
                 return {
                     "solver": "Gurobi",
                     "status": "Optimal" if model.status == GRB.OPTIMAL else "Time Limit",
-                    "edges": edges_used,
+                    "lb": model.ObjBound,
                     "objective": model.ObjVal,
                     "gap": model.MIPGap,
-                    "time": model.Runtime
+                    "time": model.Runtime,
+                    "edges": edges_used
                 }
             else:
                 return {"solver": "Gurobi", "status": "Failed"}
 
         except gp.GurobiError as e:
             return {"solver": "Gurobi", "status": f"Error: {str(e)}"}
-
         
-    # def solve_with_copt(self):
-    #     try:
-    #         env = cp.Envr()
-    #         model = env.createModel(name="TSP_COPT")  # 正确方式创建模型
-    #         self.model = model
-
-    #         n = self.n
-    #         distances = self.distances
-    #         x = {}
-
-    #         # 创建二进制变量 x[i,j]
-    #         for i in range(n):
-    #             for j in range(n):
-    #                 if i != j:
-    #                     x[i, j] = model.addVar(vtype=COPT.BINARY, name=f"x_{i}_{j}")
-    #         self.x = x
-
-    #         # 每个城市只能进入一次
-    #         for j in range(n):
-    #             model.addConstr(cp.quicksum(x[i, j] for i in range(n) if i != j) == 1)
-
-    #         # 每个城市只能离开一次
-    #         for i in range(n):
-    #             model.addConstr(cp.quicksum(x[i, j] for j in range(n) if i != j) == 1)
-
-    #         # 使用MTZ消除子回路，添加辅助变量 u[i]
-    #         u = {}
-    #         for i in range(1, n):
-    #             u[i] = model.addVar(lb=0, ub=n - 1, vtype=COPT.INTEGER, name=f"u_{i}")
-    #         self.u = u
-
-    #         for i in range(1, n):
-    #             for j in range(1, n):
-    #                 if i != j:
-    #                     model.addConstr(u[i] - u[j] + n * x[i, j] <= n - 1)
-
-    #         # 设置目标函数：最小化总旅行距离
-    #         model.setObjective(
-    #             cp.quicksum(distances[i, j] * x[i, j] for i in range(n) for j in range(n) if i != j),
-    #             sense=cp.COPT.MINIMIZE
-    #         )
-
-    #         # 设置参数（注意是字符串）
-    #         model.setParam("TimeLimit", self.timeLimit)
-            
-
-    #         model.solve()
-
-    #         status = model.getAttr("Status")
-    #         if status in [cp.COPT.OPTIMAL, cp.COPT.TIMEOUT]:
-    #             lb = model.getAttr("BestBd")
-    #             obj_value = model.getAttr("ObjVal")
-    #             mip_gap = model.getAttr("MIPGap")
-    #             runtime = model.getAttr("Runtime")
-    #             status_str = "Optimal" if status == cp.COPT.OPTIMAL else "Time Limit"
-
-    #             return {
-    #                 "solver": "COPT",
-    #                 "status": status_str,
-    #                 "lb": lb,
-    #                 "objective": obj_value,
-    #                 "gap": mip_gap,
-    #                 "time": runtime
-    #             }
-    #         else:
-    #             return {
-    #                 "solver": "COPT",
-    #                 "status": "Failed"
-    #             }
-
-    #     except cp.CoptError as e:
-    #         return {
-    #             "solver": "COPT",
-    #             "status": f"Error: {str(e)}"
-    #         }

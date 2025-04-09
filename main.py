@@ -8,7 +8,7 @@ from TSPProblem import TSPProblem
 from plot import plot_tour
 
 # 主函数
-def main():
+def main(timeLimit = 20):
     # 选择三个TSP问题
     tsp_files = [
         os.path.join("data", "d657.tsp")
@@ -25,20 +25,18 @@ def main():
         # 读取TSP问题
         tsp_problem = TSPProblem(tsp_file)
         print(f"Problem Size: {tsp_problem.dimension} cities")
-        grboptimizer = GRB_Optimizer(tsp_problem, timeLimit=20)
-        coptoptimizer = COPT_Optimizer(tsp_problem, timeLimit=20)
+        grboptimizer = GRB_Optimizer(tsp_problem, timeLimit=timeLimit)
+        coptoptimizer = COPT_Optimizer(tsp_problem, timeLimit=timeLimit)
 
-        # # 使用Gurobi求解
-        # print("\nSolving with Gurobi...")
-        # gurobi_result = optimizer.solve_with_lazy_gurobi()
-        # print(gurobi_result)
+        # 使用Gurobi求解
+        print("\nSolving with Gurobi...")
+        gurobi_result = grboptimizer.solve_with_lazy_gurobi()
         # if gurobi_result["status"] != "Failed":
         #     plot_tour(tsp_problem.coordinates, gurobi_result["edges"])
         
         # 使用COPT求解
         print("\nSolving with COPT...")
         COPT_result = coptoptimizer.solve_with_lazy_copt()
-        print(COPT_result)
         
         # 保存结果
         results.append({
