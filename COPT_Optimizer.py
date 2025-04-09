@@ -49,6 +49,7 @@ class COPT_Optimizer:
         model.setParam(COPT.Param.HeurLevel, 3)
         model.setParam(COPT.Param.Threads, 8)
         model.setParam(COPT.Param.Presolve, 2)
+        model.setParam(COPT.Param.RelGap, 0.0000001)
 
         model.solve()
 

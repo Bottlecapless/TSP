@@ -136,6 +136,7 @@ class GRB_Optimizer:
             model.setParam("Heuristics", 0.8)
             model.setParam("Presolve", 1)
             model.setParam("Threads", 8)
+            model.setParam("MIPGap", 0.000001)
 
             # 优化模型（带 callback）
             cb = TSPCallback(nodes, x)
