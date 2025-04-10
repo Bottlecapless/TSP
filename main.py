@@ -8,13 +8,12 @@ from TSPProblem import TSPProblem
 from plot import plot_tour
 
 # 主函数
-def main(timeLimit = 20):
+def main(timeLimit):
     # 选择三个TSP问题
     tsp_files = [
-        os.path.join("data", "d657.tsp")
-        # os.path.join("data", "u724.tsp"),
-        # os.path.join("data", "d657.tsp"),
-        # os.path.join("data", "rl1304.tsp")
+        # os.path.join("data", "d657.tsp")
+        # os.path.join("data", "u724.tsp")
+        os.path.join("data", "u1060.tsp")
     ]
     
     results = []
@@ -50,4 +49,4 @@ def main(timeLimit = 20):
     
 
 if __name__ == "__main__":
-    main()
+    main(timeLimit=600)
