@@ -1,0 +1,130 @@
+\documentclass[12pt]{article}  % 官方要求字号不小于 12 号, 此处选择 12 号字体
+ \linespread{1.1} %用来调整行距, 为标准行距的1.1倍
+\usepackage{geometry} %此宏包用来调整页边距
+    \geometry{left=1in,right=0.75in,top=1in,bottom=0.8in} % 搭配geometry宏包食用, 将页边距调整至特定格式.
+%\usepackage{mathptmx}  % 这是 Times 字体, 中规中矩 
+\usepackage{palatino}  % palatino是 COMAP 官方杂志采用的更好看的 Palatino 字体, 可替代以上的 mathptmx 宏包. 在正文中可以使用: 无衬线字体、等宽字体、斜体字体、粗体字体. 
+\usepackage{pdfpages} % 可以插入一页pdf, 注意只能一页. 
+\usepackage{longtable} % 可以插入跨页长表格, 同时支持冻结首行功能, 即跨页后表格第一行仍然为原表格第一行. 
+\usepackage{tabu} % 更加灵活的表格制作, 可以设置列宽、行高、单元格格式, 我常用\rowfont[alignment]{fontSpec}把某行的内容置为粗体.
+\usepackage{threeparttable} % 允许表格底部增加表格注释
+\usepackage{listings} % 提供代码环境
+\usepackage{paralist} % 提供更加方便的列表环境, 包括创建紧凑的列表、创建带有括号的行内列表
+\usepackage{booktabs} % 创建更漂亮的表格, 比如经典的三线表
+\usepackage{newtxtext} % 提供更多的字体
+\usepackage{amsmath,amssymb,amsthm} % 经典, 没它们我会死
+\usepackage{newtxmath} % must come after amsXXX
+\usepackage{graphicx} % 允许插入图片、位图等. 
+\usepackage{xcolor} % 允许对颜色做处理
+\usepackage{fancyhdr} % 更灵活的页眉和页脚,包括自由的页码
+\usepackage{float} % 为浮动体提供H命令
+\usepackage{lastpage}
+\usepackage{hyperref} % 允许我进行超链接
+\hypersetup{colorlinks=true,urlcolor=blue}
+\hypersetup{colorlinks=true,linkcolor=red}
+\hypersetup{colorlinks=true,citecolor=blue}
+\usepackage{subfigure} % 子图
+\usepackage{multirow} % 合并列单元格
+
+\usepackage{algorithm}% 为算法提供浮动环境
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+
+\usepackage[AutoFakeBold, AutoFakeSlant]{xeCJK}
+
+\newtheorem{theorem}{Theorem} 
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition} % 呃呃太熟悉了这些
+
+\newcommand{\blue}[1]{{\color{blue}#1}}
+\renewcommand{\bf}[1]{\textbf{#1}}
+% \newcommand{\bbf}[1]{{\textbf{\color{blue}#1}}}
+
+\title{{TSP}}
+
+\author{王英枭 \\
+          211840213\\
+         {\small wangbottlecap@gmail.com}}
+
+% \bibstyle{alpha}
+\bibliographystyle{alpha}
+
+\lstset{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=5pt,
+  backgroundcolor=\color{white},
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  frame=single,
+  rulecolor=\color{black},
+  tabsize=2,
+  captionpos=b,
+  breaklines=true,
+  breakatwhitespace=false,
+  title=\lstname,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green},
+  stringstyle=\color{red},
+  escapeinside={\%*}{*)},
+  aboveskip = 10pt
+  % belowskip = 10pt
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+离散优化课程作业，主要包括求解器Gurobi、COPT对旅行商问题样例d657, rat575, u1060的实现。对两种求解器的调用均放弃MTZ子环约束，转而使用Callback Module进行Lazy Constraint限制。此外，添加了最近邻算法以加速寻找初始解，并在适当的地方进行求解器参数调优。
+\end{abstract}
+
+\tableofcontents
+\section{数学模型}
+定义两个城市$i, j$间的距离为其二维坐标下的欧几里得距离，目标函数因此被定义为路径$\omega$在此城市距离定义下的总长度。物理约束仅添加``每个城市$i$的度(degree)为2''，子环在Callback中考虑。
+
+\section{Gurobi}
+使用Gurobi进行计算的配置如下：
+\begin{enumerate}
+    \item Callback: 只有找到合法子环，才添加lazy constraint把该子环排除；放弃在硬约束中排除所有子环
+    \item 求最短子环的函数不会找到对称子环，以破解对称性
+    \item 在Gurobi求解之前使用最近邻算法生成初始可行路径，并设置为初始解
+    \item 参数调优：
+    \begin{itemize}
+        \item model.setParam("MIPFocus", 1)
+        \item model.setParam("ImproveStartTime", 5)
+        \item model.setParam("ImproveStartNodes", 100)
+        \item model.setParam("Cuts", 1)
+        \item model.setParam("Heuristics", 0.8)
+        \item model.setParam("Presolve", 1)
+        \item model.setParam("Threads", 8)
+    \end{itemize}
+\end{enumerate}
+用于数值比较的参数配置（如计算时间=timeLimit，绝对最优间隙=0.000001等）已略去。
+
+\section{COPT}
+使用COPT进行计算的配置如下：
+\begin{enumerate}
+    \item Callback: 只有找到合法子环，才添加lazy constraint把该子环排除；放弃在硬约束中排除所有子环
+    \item 求最短子环的函数不会找到对称子环，以破解对称性
+    \item 在COPT求解之前使用最近邻算法生成初始可行路径，并设置为初始解
+    \item 参数调优：
+    \begin{itemize}
+        \item model.setParam(COPT.Param.HeurLevel, 3)
+        \item model.setParam(COPT.Param.Threads, 8)
+        \item model.setParam(COPT.Param.Presolve, 2)
+    \end{itemize}
+\end{enumerate}
+用于数值比较的参数配置（如计算时间=timeLimit，绝对最优间隙=0.000001等）已略去。
+
+\section{代码公开}
+代码已在Github公开，具体细节参见\url{https://github.com/Bottlecapless/TSP.git}，谢谢！
+
+\end{document}
