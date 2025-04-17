@@ -168,5 +168,6 @@ class GRB_Optimizer:
             return {"solver": "Gurobi", "status": f"Error: {str(e)}"}
         
     def use_feasible_check(self, edges):
+        return
         coords = self.tsp_problem.coordinates
         plot_tour(coords, edges)

@@ -21,9 +21,8 @@ def main(timeLimit):
         "outu1060.json"
     ]
 
-    results = []
-    
     for fileIndex in range(len(tsp_files)):
+        results = []
         tsp_file = tsp_files[fileIndex]
         tsp_name = tsp_names[fileIndex]
 
@@ -53,4 +52,4 @@ def main(timeLimit):
     
 
 if __name__ == "__main__":
-    main(timeLimit=20)
+    main(timeLimit=600)

@@ -139,6 +139,7 @@ class COPT_Optimizer:
             return {"solver": "COPT", "status": "Failed"}
         
     def use_feasible_check(self, edges):
+        return
         coords = self.tsp_problem.coordinates
         plot_tour(coords, edges)
         
