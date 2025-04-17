@@ -11,9 +11,9 @@ from plot import plot_tour
 def main(timeLimit):
     # 选择三个TSP问题
     tsp_files = [
-        # os.path.join("data", "d657.tsp")
+        os.path.join("data", "d657.tsp")
         # os.path.join("data", "u724.tsp")
-        os.path.join("data", "u1060.tsp")
+        # os.path.join("data", "u1060.tsp")
     ]
     
     results = []
@@ -24,14 +24,12 @@ def main(timeLimit):
         # 读取TSP问题
         tsp_problem = TSPProblem(tsp_file)
         print(f"Problem Size: {tsp_problem.dimension} cities")
-        grboptimizer = GRB_Optimizer(tsp_problem, timeLimit=timeLimit)
+        # grboptimizer = GRB_Optimizer(tsp_problem, timeLimit=timeLimit)
         coptoptimizer = COPT_Optimizer(tsp_problem, timeLimit=timeLimit)
 
         # 使用Gurobi求解
         print("\nSolving with Gurobi...")
-        gurobi_result = grboptimizer.solve_with_lazy_gurobi()
-        # if gurobi_result["status"] != "Failed":
-        #     plot_tour(tsp_problem.coordinates, gurobi_result["edges"])
+        # gurobi_result = grboptimizer.solve_with_lazy_gurobi()
         
         # 使用COPT求解
         print("\nSolving with COPT...")

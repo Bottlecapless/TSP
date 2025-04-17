@@ -52,6 +52,7 @@ class COPT_Optimizer:
         model.setParam(COPT.Param.RelGap, 0.0000001)
 
         model.solve()
+        model.write('test.mps')
 
         if model.status == COPT.OPTIMAL or model.status == COPT.TIMEOUT:
             vals = {k: x[k].X for k in x}
