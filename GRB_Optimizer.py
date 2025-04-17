@@ -6,6 +6,7 @@ from itertools import combinations
 from collections import defaultdict
 
 from TSPProblem import TSPProblem
+from plot import plot_tour
 
 class TSPCallback:
     """
@@ -29,7 +30,7 @@ class TSPCallback:
                 edges = [(i, j) for (i, j), v in values.items() if v > 0.5]
                 tour = self._shortest_subtour(edges)
 
-                # ✅ 只有找到合法子环，才添加 lazy constraint
+                # 只有找到合法子环，才添加 lazy constraint
                 if len(tour) < len(self.nodes):
                     model.cbLazy(
                         gp.quicksum(self.x[min(i, j), max(i, j)] for i, j in combinations(tour, 2))
@@ -37,11 +38,11 @@ class TSPCallback:
                     )
 
             except ValueError as ve:
-                # ⚠️ 跳过非法结构，不终止求解
+                # 跳过非法结构，不终止求解
                 print("Skipping invalid solution in callback:", ve)
 
             except Exception as e:
-                # ❗其他异常终止模型，便于调试
+                # 其他异常终止模型，便于调试
                 print("Callback failed with unexpected error:", e)
                 model.terminate()
 
@@ -124,8 +125,12 @@ class GRB_Optimizer:
                 x[i, j].start = 1
 
             # 添加约束：每个点度数为2
+            # for i in nodes:
+            #     model.addConstr(gp.quicksum(x[min(i, j), max(i, j)] for j in nodes if i != j) == 2)
             for i in nodes:
-                model.addConstr(gp.quicksum(x[min(i, j), max(i, j)] for j in nodes if i != j) == 2)
+                model.addConstr(
+                    gp.quicksum(x[i, j] if i < j else x[j, i] for j in nodes if i != j) == 2
+                )
 
             # 设置参数
             model.setParam('TimeLimit', self.timeLimit)
@@ -146,6 +151,7 @@ class GRB_Optimizer:
             if model.status == GRB.OPTIMAL or model.status == GRB.TIME_LIMIT:
                 vals = model.getAttr("X", x)
                 edges_used = [(i, j) for (i, j), val in vals.items() if val > 0.5]
+                self.use_feasible_check(edges_used)
                 return {
                     "solver": "Gurobi",
                     "status": "Optimal" if model.status == GRB.OPTIMAL else "Time Limit",
@@ -161,3 +167,6 @@ class GRB_Optimizer:
         except gp.GurobiError as e:
             return {"solver": "Gurobi", "status": f"Error: {str(e)}"}
         
+    def use_feasible_check(self, edges):
+        coords = self.tsp_problem.coordinates
+        plot_tour(coords, edges)

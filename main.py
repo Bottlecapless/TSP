@@ -11,30 +11,36 @@ from plot import plot_tour
 def main(timeLimit):
     # 选择三个TSP问题
     tsp_files = [
-        os.path.join("data", "d657.tsp")
-        # os.path.join("data", "u724.tsp")
-        # os.path.join("data", "u1060.tsp")
+        os.path.join("data", "d657.tsp"),
+        os.path.join("data", "rat575.tsp"),
+        os.path.join("data", "u1060.tsp")
     ]
-    
+    tsp_names = [
+        "outd657.json",
+        "outrat575.json",
+        "outu1060.json"
+    ]
+
     results = []
     
-    for tsp_file in tsp_files:
+    for fileIndex in range(len(tsp_files)):
+        tsp_file = tsp_files[fileIndex]
+        tsp_name = tsp_names[fileIndex]
+
         print(f"\nProcessing TSP Problem: {tsp_file}")
-        
         # 读取TSP问题
         tsp_problem = TSPProblem(tsp_file)
         print(f"Problem Size: {tsp_problem.dimension} cities")
-        # grboptimizer = GRB_Optimizer(tsp_problem, timeLimit=timeLimit)
+        grboptimizer = GRB_Optimizer(tsp_problem, timeLimit=timeLimit)
+        # return
         coptoptimizer = COPT_Optimizer(tsp_problem, timeLimit=timeLimit)
 
         # 使用Gurobi求解
         print("\nSolving with Gurobi...")
-        # gurobi_result = grboptimizer.solve_with_lazy_gurobi()
-        
+        gurobi_result = grboptimizer.solve_with_lazy_gurobi()
         # 使用COPT求解
         print("\nSolving with COPT...")
         COPT_result = coptoptimizer.solve_with_lazy_copt()
-        
         # 保存结果
         results.append({
             "problem": tsp_problem.name,
@@ -42,9 +48,9 @@ def main(timeLimit):
             "gurobi": gurobi_result,
             "copt": COPT_result
         })
-        
-    json.dump(results, open("out.json", "w"))
+        json.dump(results, open(tsp_name, "w"))
+        print(f"Problem {tsp_file} Finished.")
     
 
 if __name__ == "__main__":
-    main(timeLimit=600)
+    main(timeLimit=20)
